@@ -1,24 +1,36 @@
 import {call, put, takeLatest} from 'redux-saga/effects';
-import {
-  setApiUrl,
-  setIsUrlGreen,
-  setLanguage,
-  setTheme,
-  tryChangeApiUrl,
-} from './app-reducer';
-import findUrl from '../../api/url-finder';
+import {initFailed, initRequest, updateInitState} from './app-reducer';
+import {initSuccess} from './app-reducer';
+import findUrl from '@/api/url-finder';
 
-async function* tryChangeApiUrlSaga(_: ReturnType<typeof tryChangeApiUrl>) {
+function* initAppSaga() {
   try {
-    const result: string | null = await findUrl();
-    if (result) {
-      yield call(setApiUrl, result);
+    let url = '';
+    let idx = 0;
+    do {
+      url = yield call(async () => {
+        try {
+          return await findUrl(`https://manatoki${idx}.net`);
+        } catch (error) {
+          return null;
+        }
+      });
+
+      if (url) {
+        break;
+      } else {
+        idx++;
+        yield put(updateInitState({lastTriedIndex: idx}));
+      }
+    } while (!url && idx < 1000);
+    if (url) {
+      yield put(initSuccess());
     }
   } catch (error) {
-    console.error(error);
+    yield put(initFailed());
   }
 }
 
 export function* watchAppSaga() {
-  yield takeLatest(tryChangeApiUrl, tryChangeApiUrlSaga);
+  yield takeLatest(initRequest, initAppSaga);
 }
