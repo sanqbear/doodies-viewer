@@ -1,47 +1,39 @@
-import React, {useEffect, useState} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import AppSetting from './types/app-setting';
+import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeScreen from './screen/HomeScreen';
 import LookupScreen from './screen/LookupScreen';
-import {
-  createStaticNavigation,
-  NavigationContainer,
-} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
+import {useAppDispatch, useAppSelector} from './hook';
+import {loadAppState} from './context/app/app-reducer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const App = () => {
-  const [appSetting, setAppSetting] = useState<AppSetting>({
-    url: '',
-    isGreen: false,
-    theme: 'light',
-  });
-  const loadAppSetting = async () => {
-    const appSettingItem = await AsyncStorage.getItem('appSetting');
-    if (appSettingItem) {
-      setAppSetting(JSON.parse(appSettingItem));
-    }
-  };
+  const appSetting = useAppSelector(state => state.app);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    loadAppSetting();
-  }, []);
+    if(!appSetting.isGreen) {
+      AsyncStorage.getItem('DVIEW:APPSTATE').then(appState => {
+        if (appState) {
+          dispatch(loadAppState(JSON.parse(appState)));
+        }
+      });
+    }
+  }, [dispatch, appSetting.isGreen]);
 
-  const stack = createNativeStackNavigator({
-    screens: {
-      Home: {
-        if: () => appSetting.isGreen,
-        screen: HomeScreen,
-      },
-      Lookup: {
-        if: () => !appSetting.isGreen,
-        screen: LookupScreen,
-      },
-    },
-  });
+  const Stack = createNativeStackNavigator();
 
-  const navigation = createStaticNavigation(stack);
-
-  return <NavigationContainer>{navigation}</NavigationContainer>;
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        {appSetting.isGreen ? (
+          <Stack.Screen name="Home" component={HomeScreen} />
+        ) : (
+          <Stack.Screen name="Lookup" component={LookupScreen} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 };
 
 export default App;

@@ -11,7 +11,12 @@ async function findUrl(url: string) {
       }
     }
   } else if (response.status === 200) {
-    if (response.headers.server === 'cloudflare') {
+    const serverHeader = response.headers.server;
+    const panelHeader = response.headers.Panel;
+    const platformHeader = response.headers.Platform;
+    const linkHeader = response.headers.Link;
+
+    if (serverHeader === 'cloudflare' && !panelHeader && !platformHeader && !linkHeader) {
       return url;
     }
   }
