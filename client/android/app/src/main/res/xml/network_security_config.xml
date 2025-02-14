@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">manatoki346.net</domain>
+        <trust-anchors>
+            <certificates src="@raw/manatoki468.net"/> 
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
