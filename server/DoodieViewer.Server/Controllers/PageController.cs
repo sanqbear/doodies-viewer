@@ -40,16 +40,14 @@ namespace DoodieViewer.Server.Controllers
             }
             else
             {
-                await pageParserService.GetHomePageData(urlBindService.ServiceUrl);
+                var data = await pageParserService.GetHomePageData(urlBindService.ServiceUrl);
                 result.Success = true;
-                result.Data = new GetHomePageResponse(Success: true);
+                result.Data = new GetHomePageResponse(Success: true, Items: data);
             }
 
             return Ok(result);
         }
 
-        public record GetHomePageResponse(bool Success, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] string? Message = default);
-
-
+        public record GetHomePageResponse(bool Success, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] HomePageResult? Items = default, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] string? Message = default);
     }
 }
